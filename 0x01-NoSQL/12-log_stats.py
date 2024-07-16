@@ -1,26 +1,38 @@
 #!/usr/bin/env python3
-
 """
-A Python script that provides some
-stats about Nginx logs stored in MongoDB
+Provides statistics about Nginx logs stored in MongoDB.
 """
-
 
 from pymongo import MongoClient
 
 
-if __name__ == "__main__":
+def log_statistics():
+    """
+    Provides some stats about Nginx logs stored in MongoDB:
+    """
     client = MongoClient('mongodb://127.0.0.1:27017')
-    collection = client.logs.nginx
+    logs_collection = client.logs.nginx
+    count = logs_collection.count_documents({})
+    print("{} logs".format(count))
+    print("Methods:")
+    methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    for method in methods:
+        meth_count = logs_collection.count_documents(
+            {"method": {
+                "$eq": method
+            }})
+        print("\tmethod {}: {}".format(method, meth_count))
 
-    all_logs = collection.count_documents({})
-    get_logs = collection.count_documents({"method": "GET"})
-    post_logs = collection.count_documents({"method": "POST"})
-    put_logs = collection.count_documents({"method": "PUT"})
-    patch_logs = collection.count_documents({"method": "PATCH"})
-    delete_logs = collection.count_documents({"method": "DELETE"})
-    checks = collection.count_documents({"method": "GET", "path": "/status"})
+    status_checks = logs_collection.count_documents(
+        {"$and": [{
+            "method": {
+                "$eq": 'GET'
+            }
+        }, {
+            "path": "/status"
+        }]})
+    print("{} status check".format(status_checks))
 
-    print("{} logs\n Methods:\n \t  method GET: {} \n\t  method POST: {} \n\t  method"
-          " PUT: {} \n\t  method PATCH: {} \n\t  method DELETE: {}"
-          "\n status_checks: {}".format(all_logs, get_logs, post_logs, put_logs, patch_logs, delete_logs, checks))
+
+if __name__ == "__main__":
+    log_statistics()
