@@ -6,43 +6,41 @@ This module defines a decorator to count the number of times a URL is requested
 and to cache the HTML content of the URL for a specified period of time.
 """
 
+
 import redis
 import requests
-from typing import Callable
 from functools import wraps
 
-redis_client = redis.Redis()
+r = redis.Redis()
 
 
-def count_requests(method: Callable) -> Callable:
-    """
-    Decorator to count number of times a URL is requested and cache the result.
-    """
-
+def url_access_count(method):
+    """decorator for get_page function"""
     @wraps(method)
-    def wrapper(url: str) -> str:
-        """
-        Wrapper function to count requests and cache the HTML content.
-        """
+    def wrapper(url):
+        """wrapper function"""
+        key = "cached:" + url
+        cached_value = r.get(key)
+        if cached_value:
+            return cached_value.decode("utf-8")
 
-        redis_client.incr(f"count:{url}")
-        cached_html = redis_client.get(f"cached:{url}")
-        if cached_html:
-            return cached_html.decode('utf-8')
-
+            # Get new content and update cache
+        key_count = "count:" + url
         html_content = method(url)
-        redis_client.set(f'count:{url}', 0)
-        redis_client.setex(f"cached:{url}", 10, html_content)
 
+        r.incr(key_count)
+        r.set(key, html_content, ex=10)
+        r.expire(key, 10)
         return html_content
-
     return wrapper
 
 
-@count_requests
+@url_access_count
 def get_page(url: str) -> str:
-    """
-    Fetch the HTML content of a URL.
-    """
-    response = requests.get(url)
-    return response.text
+    """obtain the HTML content of a particular"""
+    results = requests.get(url)
+    return results.text
+
+
+if __name__ == "__main__":
+    get_page('http://slowwly.robertomurray.co.uk')
