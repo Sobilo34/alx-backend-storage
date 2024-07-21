@@ -4,7 +4,6 @@ Implementation of Cache class to handle basic caching operations
 using Redis as the backend storage. Supports storing and retrieving
 data with custom conversion functions.
 """
-
 import redis
 from uuid import uuid4
 from typing import Callable, Optional, Union
@@ -68,27 +67,30 @@ def replay(method: Callable) -> None:
 
 
 class Cache:
-    def __init__(self) -> None:
+    """
+    Cache class to interact with Redis.
+    """
+
+    def __init__(self):
         """
-        Initialize the Cache instance,
-        create a Redis client and flush the database.
+        Initialize the Cache class with a Redis connection.
         """
         self._redis = redis.Redis(host='localhost', port=6379, db=0)
         self._redis.flushdb()
 
-    @call_history
     @count_calls
-    def store(self, data: Union[str, bytes, int, float]) -> str:
+    @call_history
+    def store(self, data) -> str:
         """
-        Store the input data in Redis using a randomly generated key.
+        Store data in Redis and return a unique key.
 
         Args:
-            data (Union[str, bytes, int, float]): The data to be stored.
+            data (str): The data to store.
 
         Returns:
-            str: The generated random key used to store the data.
+            str: The unique key for the stored data.
         """
-        key = str(uuid.uuid4())
+        key = str(uuid4())
         self._redis.set(key, data)
         return key
 
