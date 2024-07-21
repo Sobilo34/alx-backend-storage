@@ -45,11 +45,10 @@ def call_history(method: Callable) -> Callable:
 
 def replay(method: Callable) -> None:
     """
-    Function to display the history of calls of a given method.
+    Displays the history of calls to a method.
 
     Args:
-        method (Callable):
-        The method for which the call history will be displayed.
+        method (Callable): The method to replay.
     """
     method_name = method.__qualname__
     redis_client = method.__self__._redis
@@ -60,7 +59,7 @@ def replay(method: Callable) -> None:
     for input_data, output_data in zip(inputs, outputs):
         input_data = input_data.decode("utf-8")
         output_data = output_data.decode("utf-8")
-        print(f"{method_name}(*{input_data}) -> {output_data}")
+        print(f"{method_name}(*{eval(input_data)}) -> {output_data}")
 
 
 def count_calls(method: Callable) -> Callable:
