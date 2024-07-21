@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
-""" Main file """
-from exercise import Cache, replay
+"""
+Main file
+"""
+import redis
 
 Cache = __import__('exercise').Cache
 
 cache = Cache()
 
-s1 = cache.store("foo")
-print(s1)
-s2 = cache.store("bar")
-print(s2)
-s3 = cache.store(43)
-print(s3)
+data = b"hello"
+key = cache.store(data)
+print(key)
 
-inputs = cache._redis.lrange("{}:inputs".format(cache.store.__qualname__), 0, -1)
-outputs = cache._redis.lrange("{}:outputs".format(cache.store.__qualname__), 0, -1)
-
-print("inputs: {}".format(inputs))
-print("outputs: {}".format(outputs))
-
-replay(cache.store)
+local_redis = redis.Redis()
+print(local_redis.get(key))

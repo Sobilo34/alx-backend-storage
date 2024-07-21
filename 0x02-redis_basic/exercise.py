@@ -68,34 +68,32 @@ def replay(method: Callable) -> None:
 
 
 class Cache:
-    """
-    Cache class to interact with Redis.
-    """
-
-    def __init__(self):
+    def __init__(self) -> None:
         """
-        Initialize the Cache class with a Redis connection.
+        Initialize the Cache instance,
+        create a Redis client and flush the database.
         """
         self._redis = redis.Redis(host='localhost', port=6379, db=0)
         self._redis.flushdb()
 
-    @count_calls
     @call_history
-    def store(self, data) -> str:
+    @count_calls
+    def store(self, data: Union[str, bytes, int, float]) -> str:
         """
-        Store data in Redis and return a unique key.
+        Store the input data in Redis using a randomly generated key.
 
         Args:
-            data (str): The data to store.
+            data (Union[str, bytes, int, float]): The data to be stored.
 
         Returns:
-            str: The unique key for the stored data.
+            str: The generated random key used to store the data.
         """
-        key = str(uuid4())
+        key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable] = None) -> Union[bytes, float, str, int, None]:
+    def get(self, key: str, fn: Optional[Callable] = None
+            ) -> Union[bytes, float, str, int, None]:
         """
         Retrieve data from Redis by key.
 
